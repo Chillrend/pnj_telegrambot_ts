@@ -3,17 +3,22 @@ import morgan from 'morgan';
 import path from 'path';
 import helmet from 'helmet';
 
-import express, { NextFunction, Request, Response } from 'express';
+import express, {NextFunction, Request, Response} from 'express';
 import StatusCodes from 'http-status-codes';
 import 'express-async-errors';
+
+import {TelegramBot} from "./telegram/bot";
 
 import BaseRouter from './routes';
 import logger from '@shared/Logger';
 
 const app = express();
-const { BAD_REQUEST } = StatusCodes;
+const {BAD_REQUEST} = StatusCodes;
 
-
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_TOKEN;
+const WEBHOOK_HOST = process.env.WEBHOOK_HOST;
+const WEBHOOK_PATH = `/tl-webhook-${TELEGRAM_BOT_TOKEN}`;
+const bot = TelegramBot.Instance;
 
 /************************************************************************************
  *                              Set basic express settings
@@ -45,7 +50,19 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     });
 });
 
+/************************************************************************************
+ *                              Set telegraf settings
+ ***********************************************************************************/
 
+if (WEBHOOK_HOST) {
+    app.use(bot.webhookCallback(WEBHOOK_PATH))
+    bot.telegram.setWebhook(`${WEBHOOK_HOST}${WEBHOOK_PATH}`)
+    console.log(`Bot is using webhook for host '${WEBHOOK_HOST}!'`)
+} else {
+    bot.telegram.deleteWebhook(`${WEBHOOK_HOST}${WEBHOOK_PATH}`)
+    bot.launch()
+    console.log(`Bot is using polling mode!`)
+}
 
 /************************************************************************************
  *                              Serve front-end content
