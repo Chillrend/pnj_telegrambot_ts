@@ -71,6 +71,7 @@
     "jsonfile": "^6.1.0",
     "module-alias": "^2.2.2",
     "morgan": "^1.10.0",
+    "openid-client": "^4.7.4",
     "telegraf": "^4.4.1"
   },
   "devDependencies": {
